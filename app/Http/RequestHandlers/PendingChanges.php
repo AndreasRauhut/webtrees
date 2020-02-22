@@ -20,9 +20,16 @@ declare(strict_types=1);
 namespace Fisharebest\Webtrees\Http\RequestHandlers;
 
 use Fisharebest\Webtrees\Carbon;
+use Fisharebest\Webtrees\Factories\FamilyFactory;
+use Fisharebest\Webtrees\Factories\GedcomRecordFactory;
+use Fisharebest\Webtrees\Factories\IndividualFactory;
+use Fisharebest\Webtrees\Factories\MediaFactory;
+use Fisharebest\Webtrees\Factories\NoteFactory;
+use Fisharebest\Webtrees\Factories\RepositoryFactory;
+use Fisharebest\Webtrees\Factories\SourceFactory;
+use Fisharebest\Webtrees\Factories\SubmitterFactory;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom;
-use Fisharebest\Webtrees\GedcomRecord;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\I18N;
 use Fisharebest\Webtrees\Individual;
@@ -51,15 +58,64 @@ class PendingChanges implements RequestHandlerInterface
 {
     use ViewResponseTrait;
 
+    /** @var FamilyFactory */
+    private $family_factory;
+
+    /** @var GedcomRecordFactory */
+    private $gedcom_record_factory;
+
+    /** @var IndividualFactory */
+    private $individual_factory;
+
+    /** @var MediaFactory */
+    private $media_factory;
+
+    /** @var NoteFactory */
+    private $note_factory;
+
+    /** @var RepositoryFactory */
+    private $repository_factory;
+
+    /** @var SourceFactory */
+    private $source_factory;
+
+    /** @var SubmitterFactory */
+    private $submitter_factory;
+
     /** @var TreeService */
     private $tree_service;
 
     /**
-     * @param TreeService $tree_service
+     * @param FamilyFactory       $family_factory
+     * @param GedcomRecordFactory $gedcom_record_factory
+     * @param IndividualFactory   $individual_factory
+     * @param MediaFactory        $media_factory
+     * @param NoteFactory         $note_factory
+     * @param RepositoryFactory   $repository_factory
+     * @param SourceFactory       $source_factory
+     * @param SubmitterFactory    $submitter_factory
+     * @param TreeService         $tree_service
      */
-    public function __construct(TreeService $tree_service)
-    {
-        $this->tree_service = $tree_service;
+    public function __construct(
+        FamilyFactory $family_factory,
+        GedcomRecordFactory $gedcom_record_factory,
+        IndividualFactory $individual_factory,
+        MediaFactory $media_factory,
+        NoteFactory $note_factory,
+        RepositoryFactory $repository_factory,
+        SourceFactory $source_factory,
+        SubmitterFactory $submitter_factory,
+        TreeService $tree_service
+    ) {
+        $this->family_factory        = $family_factory;
+        $this->gedcom_record_factory = $gedcom_record_factory;
+        $this->individual_factory    = $individual_factory;
+        $this->media_factory         = $media_factory;
+        $this->note_factory          = $note_factory;
+        $this->repository_factory    = $repository_factory;
+        $this->source_factory        = $source_factory;
+        $this->submitter_factory     = $submitter_factory;
+        $this->tree_service          = $tree_service;
     }
 
     /**
@@ -93,29 +149,36 @@ class PendingChanges implements RequestHandlerInterface
             preg_match('/^0 (?:@' . Gedcom::REGEX_XREF . '@ )?(' . Gedcom::REGEX_TAG . ')/', $row->old_gedcom . $row->new_gedcom, $match);
 
             switch ($match[1]) {
-                case 'INDI':
-                    $row->record = new Individual($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
+                case Individual::RECORD_TYPE:
+                    $row->record = $this->individual_factory->new($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
                     break;
-                case 'FAM':
-                    $row->record = new Family($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
+
+                case Family::RECORD_TYPE:
+                    $row->record = $this->family_factory->new($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
                     break;
-                case 'SOUR':
-                    $row->record = new Source($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
+
+                case Source::RECORD_TYPE:
+                    $row->record = $this->source_factory->new($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
                     break;
-                case 'REPO':
-                    $row->record = new Repository($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
+
+                case Repository::RECORD_TYPE:
+                    $row->record = $this->repository_factory->new($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
                     break;
-                case 'OBJE':
-                    $row->record = new Media($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
+
+                case Media::RECORD_TYPE:
+                    $row->record = $this->media_factory->new($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
                     break;
-                case 'NOTE':
-                    $row->record = new Note($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
+
+                case Note::RECORD_TYPE:
+                    $row->record = $this->note_factory->new($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
                     break;
-                case 'SUBM':
-                    $row->record = new Submitter($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
+
+                case Submitter::RECORD_TYPE:
+                    $row->record = $this->submitter_factory->new($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
                     break;
+
                 default:
-                    $row->record = new GedcomRecord($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
+                    $row->record = $this->gedcom_record_factory->new($row->xref, $row->old_gedcom, $row->new_gedcom, $change_tree);
                     break;
             }
 

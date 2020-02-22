@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees\Http\RequestHandlers;
 use Fig\Http\Message\StatusCodeInterface;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Fact;
+use Fisharebest\Webtrees\Factories\NoteFactory;
 use Fisharebest\Webtrees\Filter;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\Note;
@@ -46,14 +47,21 @@ class NotePage implements RequestHandlerInterface
     /** @var ClipboardService */
     private $clipboard_service;
 
+    /** @var NoteFactory */
+    private $note_factory;
+
     /**
      * NotePage constructor.
      *
      * @param ClipboardService $clipboard_service
+     * @param NoteFactory      $note_factory
      */
-    public function __construct(ClipboardService $clipboard_service)
-    {
+    public function __construct(
+        ClipboardService $clipboard_service,
+        NoteFactory $note_factory
+    ) {
         $this->clipboard_service = $clipboard_service;
+        $this->note_factory      = $note_factory;
     }
 
     /**
@@ -69,7 +77,7 @@ class NotePage implements RequestHandlerInterface
         $xref = $request->getAttribute('xref');
         assert(is_string($xref));
 
-        $note = Note::getInstance($xref, $tree);
+        $note = $this->note_factory->make($xref, $tree);
         $note = Auth::checkNoteAccess($note, false);
 
         // Redirect to correct xref/slug

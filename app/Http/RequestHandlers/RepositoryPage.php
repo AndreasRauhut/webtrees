@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees\Http\RequestHandlers;
 use Fig\Http\Message\StatusCodeInterface;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Fact;
+use Fisharebest\Webtrees\Factories\RepositoryFactory;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\Repository;
 use Fisharebest\Webtrees\Services\ClipboardService;
@@ -61,14 +62,21 @@ class RepositoryPage implements RequestHandlerInterface
     /** @var ClipboardService */
     private $clipboard_service;
 
+    /** @var RepositoryFactory */
+    private $repository_factory;
+
     /**
      * RepositoryPage constructor.
      *
-     * @param ClipboardService $clipboard_service
+     * @param ClipboardService  $clipboard_service
+     * @param RepositoryFactory $repository_factory
      */
-    public function __construct(ClipboardService $clipboard_service)
-    {
-        $this->clipboard_service = $clipboard_service;
+    public function __construct(
+        ClipboardService $clipboard_service,
+        RepositoryFactory $repository_factory
+    ) {
+        $this->clipboard_service  = $clipboard_service;
+        $this->repository_factory = $repository_factory;
     }
 
     /**
@@ -84,7 +92,7 @@ class RepositoryPage implements RequestHandlerInterface
         $xref = $request->getAttribute('xref');
         assert(is_string($xref));
 
-        $repository = Repository::getInstance($xref, $tree);
+        $repository = $this->repository_factory->make($xref, $tree);
         $repository = Auth::checkRepositoryAccess($repository, false);
 
         // Redirect to correct xref/slug

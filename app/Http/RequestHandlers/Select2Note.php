@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Http\RequestHandlers;
 
+use Fisharebest\Webtrees\Factories\NoteFactory;
 use Fisharebest\Webtrees\Note;
 use Fisharebest\Webtrees\Services\SearchService;
 use Fisharebest\Webtrees\Tree;
@@ -31,17 +32,23 @@ use function view;
  */
 class Select2Note extends AbstractSelect2Handler
 {
+    /** @var NoteFactory */
+    private $note_factory;
+
     /** @var SearchService */
     protected $search_service;
 
     /**
      * AutocompleteController constructor.
      *
+     * @param NoteFactory   $note_factory
      * @param SearchService $search_service
      */
     public function __construct(
+        NoteFactory $note_factory,
         SearchService $search_service
     ) {
+        $this->note_factory   = $note_factory;
         $this->search_service = $search_service;
     }
 
@@ -58,7 +65,7 @@ class Select2Note extends AbstractSelect2Handler
     protected function search(Tree $tree, string $query, int $offset, int $limit): Collection
     {
         // Search by XREF
-        $note = Note::getInstance($query, $tree);
+        $note = $this->note_factory->make($query, $tree);
 
         if ($note instanceof Note) {
             $results = new Collection([$note]);

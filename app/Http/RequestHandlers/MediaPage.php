@@ -22,6 +22,7 @@ namespace Fisharebest\Webtrees\Http\RequestHandlers;
 use Fig\Http\Message\StatusCodeInterface;
 use Fisharebest\Webtrees\Auth;
 use Fisharebest\Webtrees\Fact;
+use Fisharebest\Webtrees\Factories\MediaFactory;
 use Fisharebest\Webtrees\Http\ViewResponseTrait;
 use Fisharebest\Webtrees\Media;
 use Fisharebest\Webtrees\Services\ClipboardService;
@@ -46,14 +47,21 @@ class MediaPage implements RequestHandlerInterface
     /** @var ClipboardService */
     private $clipboard_service;
 
+    /** @var MediaFactory */
+    private $media_factory;
+
     /**
      * MediaPage constructor.
      *
      * @param ClipboardService $clipboard_service
+     * @param MediaFactory     $media_factory
      */
-    public function __construct(ClipboardService $clipboard_service)
-    {
+    public function __construct(
+        ClipboardService $clipboard_service,
+        MediaFactory $media_factory
+    ) {
         $this->clipboard_service = $clipboard_service;
+        $this->media_factory     = $media_factory;
     }
 
     /**
@@ -72,7 +80,7 @@ class MediaPage implements RequestHandlerInterface
         $xref = $request->getAttribute('xref');
         assert(is_string($xref));
 
-        $media = Media::getInstance($xref, $tree);
+        $media = $this->media_factory->make($xref, $tree);
         $media = Auth::checkMediaAccess($media);
 
         // Redirect to correct xref/slug

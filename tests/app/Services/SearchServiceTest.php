@@ -19,6 +19,13 @@ declare(strict_types=1);
 
 namespace Fisharebest\Webtrees\Services;
 
+use Fisharebest\Webtrees\Factories\FamilyFactory;
+use Fisharebest\Webtrees\Factories\IndividualFactory;
+use Fisharebest\Webtrees\Factories\MediaFactory;
+use Fisharebest\Webtrees\Factories\NoteFactory;
+use Fisharebest\Webtrees\Factories\RepositoryFactory;
+use Fisharebest\Webtrees\Factories\SourceFactory;
+use Fisharebest\Webtrees\Factories\SubmitterFactory;
 use Fisharebest\Webtrees\TestCase;
 use Illuminate\Support\Collection;
 
@@ -36,9 +43,20 @@ class SearchServiceTest extends TestCase
      */
     public function testSearchesReturnCollections(): void
     {
-        $tree_service   = new TreeService();
-        $search_service = new SearchService($tree_service);
-        $tree           = $this->importTree('demo.ged');
+        $tree_service = new TreeService();
+
+        $search_service = new SearchService(
+            app(FamilyFactory::class),
+            app(IndividualFactory::class),
+            app(MediaFactory::class),
+            app(NoteFactory::class),
+            app(RepositoryFactory::class),
+            app(SourceFactory::class),
+            app(SubmitterFactory::class),
+            $tree_service
+        );
+
+        $tree = $this->importTree('demo.ged');
 
         $result = $search_service->searchFamilies([$tree], ['windsor']);
         $this->assertInstanceOf(Collection::class, $result);

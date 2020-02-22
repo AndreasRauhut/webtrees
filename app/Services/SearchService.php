@@ -22,6 +22,13 @@ namespace Fisharebest\Webtrees\Services;
 use Closure;
 use Fisharebest\Webtrees\Date;
 use Fisharebest\Webtrees\Exceptions\HttpServiceUnavailableException;
+use Fisharebest\Webtrees\Factories\FamilyFactory;
+use Fisharebest\Webtrees\Factories\IndividualFactory;
+use Fisharebest\Webtrees\Factories\MediaFactory;
+use Fisharebest\Webtrees\Factories\NoteFactory;
+use Fisharebest\Webtrees\Factories\RepositoryFactory;
+use Fisharebest\Webtrees\Factories\SourceFactory;
+use Fisharebest\Webtrees\Factories\SubmitterFactory;
 use Fisharebest\Webtrees\Family;
 use Fisharebest\Webtrees\Gedcom;
 use Fisharebest\Webtrees\GedcomRecord;
@@ -49,18 +56,60 @@ use function mb_stripos;
  */
 class SearchService
 {
+    /** @var FamilyFactory */
+    private $family_factory;
+
+    /** @var IndividualFactory */
+    private $individual_factory;
+
+    /** @var MediaFactory */
+    private $media_factory;
+
+    /** @var NoteFactory */
+    private $note_factory;
+
+    /** @var RepositoryFactory */
+    private $repository_factory;
+
+    /** @var SourceFactory */
+    private $source_factory;
+
+    /** @var SubmitterFactory */
+    private $submitter_factory;
+
     /** @var TreeService */
     private $tree_service;
 
     /**
      * SearchService constructor.
      *
-     * @param TreeService $tree_service
+     * @param FamilyFactory     $family_factory
+     * @param IndividualFactory $individual_factory
+     * @param MediaFactory      $media_factory
+     * @param NoteFactory       $note_factory
+     * @param RepositoryFactory $repository_factory
+     * @param SourceFactory     $source_factory
+     * @param SubmitterFactory  $submitter_factory
+     * @param TreeService       $tree_service
      */
     public function __construct(
+        FamilyFactory $family_factory,
+        IndividualFactory $individual_factory,
+        MediaFactory $media_factory,
+        NoteFactory $note_factory,
+        RepositoryFactory $repository_factory,
+        SourceFactory $source_factory,
+        SubmitterFactory $submitter_factory,
         TreeService $tree_service
     ) {
-        $this->tree_service = $tree_service;
+        $this->family_factory     = $family_factory;
+        $this->individual_factory = $individual_factory;
+        $this->media_factory      = $media_factory;
+        $this->note_factory       = $note_factory;
+        $this->repository_factory = $repository_factory;
+        $this->source_factory     = $source_factory;
+        $this->submitter_factory  = $submitter_factory;
+        $this->tree_service       = $tree_service;
     }
 
     /**
@@ -1059,7 +1108,7 @@ class SearchService
         return function (stdClass $row): Family {
             $tree = $this->tree_service->find((int) $row->f_file);
 
-            return Family::rowMapper($tree)($row);
+            return $this->family_factory->mapper($tree)($row);
         };
     }
 
@@ -1073,7 +1122,7 @@ class SearchService
         return function (stdClass $row): Individual {
             $tree = $this->tree_service->find((int) $row->i_file);
 
-            return Individual::rowMapper($tree)($row);
+            return $this->individual_factory->mapper($tree)($row);
         };
     }
 
@@ -1087,7 +1136,7 @@ class SearchService
         return function (stdClass $row): Media {
             $tree = $this->tree_service->find((int) $row->m_file);
 
-            return Media::rowMapper($tree)($row);
+            return $this->media_factory->mapper($tree)($row);
         };
     }
 
@@ -1101,7 +1150,7 @@ class SearchService
         return function (stdClass $row): Note {
             $tree = $this->tree_service->find((int) $row->o_file);
 
-            return Note::rowMapper($tree)($row);
+            return $this->note_factory->mapper($tree)($row);
         };
     }
 
@@ -1115,7 +1164,7 @@ class SearchService
         return function (stdClass $row): Repository {
             $tree = $this->tree_service->find((int) $row->o_file);
 
-            return Repository::rowMapper($tree)($row);
+            return $this->repository_factory->mapper($tree)($row);
         };
     }
 
@@ -1129,7 +1178,7 @@ class SearchService
         return function (stdClass $row): Source {
             $tree = $this->tree_service->find((int) $row->s_file);
 
-            return Source::rowMapper($tree)($row);
+            return $this->source_factory->mapper($tree)($row);
         };
     }
 
@@ -1143,7 +1192,7 @@ class SearchService
         return function (stdClass $row): Submitter {
             $tree = $this->tree_service->find((int) $row->o_file);
 
-            return Submitter::rowMapper($tree)($row);
+            return $this->submitter_factory->mapper($tree)($row);
         };
     }
 }
